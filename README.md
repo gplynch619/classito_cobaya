@@ -4,31 +4,26 @@ Cobaya interface for [classito](https://github.com/gplynch619/classito), the CLA
 models small-scale electron density fluctuations (Chluba, Vasil & Battye 2025,
 [arXiv:2505.22242](https://arxiv.org/abs/2505.22242)).
 
-If you have a physical clumping model — primordial magnetic fields, a phase transition,
-enhanced small-scale power — that predicts a variance $\sigma_e^2(z)$ and a comoving coherence
-length $\Delta_c(z)$, this package lets you sample its parameters in an MCMC by writing **one
-Python method**. Everything else — passing the tabulated functions into CLASS, caching,
-transport, validation — is handled for you.
+If you have a physical clumping model (e.g. primordial magnetic fields, a phase transition,
+enhanced small-scale power) that predicts a variance $\sigma_e^2(z)$ and a comoving coherence
+length $\Delta_c(z)$, this package lets you sample its parameters in an MCMC by writing one
+Python method.
 
 ## How it fits together
 
-Cobaya's stock `classy` theory is a pure producer: it never consumes a quantity computed by
-another theory. This package provides:
+This wrapper is used with classito:
 
-- **`classito_cobaya.classito`** — a `classy` subclass that additionally *requires* a product
+- **`classito_cobaya.classito`** — a `classy` subclass that additionally requires a product
   called `ito_clumping` and forwards it into classito's table mode
   (`ito_input_mode = table`).
-- **`classito_cobaya.clumping_template.ClumpingModel`** — the template you copy: a cobaya
-  `Theory` that *provides* `ito_clumping`.
+- **`classito_cobaya.clumping_template.ClumpingModel`** — a template cobaya
+  `Theory` that provides `ito_clumping`.
 
 ```
 likelihood   --requires-->  C_l
 classito     --requires-->  ito_clumping
 your model   --provides-->  ito_clumping
 ```
-
-Your sampled parameters reach CLASS through your model, not through classito. The wrapper
-tells your model which redshift grid it wants, so the two functions always share a grid.
 
 ## Install
 
@@ -44,9 +39,6 @@ git clone https://github.com/gplynch619/classito-cobaya
 cd classito-cobaya && pip install .
 ```
 
-The `classy` importable in your environment must be the one built from classito — this package
-does not (and cannot) pull it from PyPI.
-
 ## Quick start
 
 Copy `classito_cobaya/clumping_template.py`, rename the class, and edit two methods:
@@ -60,11 +52,6 @@ def clumping_functions(self, z, **params):
     Delta_c  = ...                             # comoving Mpc
     return sigma_e2, Delta_c
 ```
-
-Note you supply the coherence **length** $\Delta_c$, not the optical depth $\tau_c$: classito
-forms $\tau_c(z) = \Delta_c(z)\,\kappa'(z)$ internally once thermodynamics is available
-(asking you for $\tau_c$ would be circular, since $\kappa'$ depends on $X_e$, which depends on
-$\sigma_e^2$).
 
 Then wire it up in yaml (full example in `examples/example.yaml`):
 
@@ -82,8 +69,7 @@ theory:
     provides: [ito_clumping]
 ```
 
-The `extra_args` block above is not optional: classito refuses to run in any other gauge, with
-tight coupling on near recombination, or with the radiation streaming approximation enabled. This is discussed in Appendix B of the classito paper.
+The `extra_args` block above needs to use the required classito settings. This is discussed in Appendix B of the classito paper.
 
 For a worked example without a sampler, `examples/clumping_model_example.ipynb` defines a model,
 evaluates it at a point through Cobaya, and plots the resulting $C_\ell$ against a fiducial ΛCDM.
