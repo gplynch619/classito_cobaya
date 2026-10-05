@@ -1,0 +1,54 @@
+# Minimal classito + Cobaya run with a user-supplied clumping model.
+#
+#   cobaya-run example.yaml
+#
+# Needs `pip install .` from the classito-cobaya repo root, and a `classy` built
+# from classito. This file samples the shipped placeholder model; in your own
+# run, replace the second theory block with your copy of clumping_template.py,
+# referenced by its module path (e.g. my_module.MyClumpingModel).
+
+theory:
+  classito_cobaya.classito:
+    extra_args:
+      # switch the module on and put it in table mode
+      has_ito: yes
+      ito_input_mode: table
+      electron_dist: lognormal
+      # classito refuses to run without these; see the README's "Limitations"
+      gauge: newtonian
+      radiation_streaming_approximation: 3
+      tight_coupling_trigger_tau_c_over_tau_h: 0.005
+      tight_coupling_trigger_tau_c_over_tau_k: 0.008
+    # grid on which the clumping functions are requested
+    ito_nodes: 48
+    ito_z_min: 10.
+    ito_z_max: 2.e4
+
+  classito_cobaya.clumping_template.ClumpingModel:
+    provides: [ito_clumping]
+
+likelihood:
+  planck_2018_lowl.TT:
+  planck_2018_highl_plik.TTTEEE_lite:
+
+params:
+  # standard LCDM
+  H0:        {prior: {min: 50, max: 80},         ref: 67.4,   proposal: 0.5}
+  omega_b:   {prior: {min: 0.005, max: 0.1},     ref: 0.02237, proposal: 0.0002}
+  omega_cdm: {prior: {min: 0.01, max: 0.99},     ref: 0.12,   proposal: 0.002}
+  logA:      {prior: {min: 1.61, max: 3.91},     ref: 3.05,   proposal: 0.01,
+              drop: true}
+  A_s:       {value: 'lambda logA: 1e-10*np.exp(logA)', latex: 'A_\mathrm{s}'}
+  n_s:       {prior: {min: 0.8, max: 1.2},       ref: 0.9649, proposal: 0.004}
+  tau_reio:  {prior: {min: 0.01, max: 0.8},      ref: 0.0544, proposal: 0.006}
+
+  # the clumping model's own parameters, claimed by ClumpingModel
+  clumping_amplitude: {prior: {min: 0., max: 1.0}, ref: 0.1,  proposal: 0.02}
+  clumping_scale:     {prior: {min: 0., max: 5.0}, ref: 0.5,  proposal: 0.1}
+  clumping_tilt:      {value: 0.}
+
+sampler:
+  mcmc:
+    Rminus1_stop: 0.02
+
+output: chains/classito_example

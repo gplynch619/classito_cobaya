@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "classito-cobaya"
+version = "1.0.0"
+description = "Cobaya interface for classito: plug your own small-scale clumping model into an MCMC"
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [{name = "Gabriel P. Lynch"}]
+# classy is deliberately NOT listed: it must come from the classito fork's own build,
+# not from PyPI. See the README for the install order.
+dependencies = [
+    "numpy",
+    "cobaya>=3.0",
+]
+
+[project.urls]
+classito = "https://github.com/gplynch619/classito"
+
+[tool.setuptools]
+packages = ["classito_cobaya"]
